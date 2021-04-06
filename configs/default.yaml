@@ -1,0 +1,17 @@
+
+batch_size: 16
+
+data:
+  path: "data/ESC-50-master"
+  sample_rate: 8000
+
+model:
+  n_classes: 50
+
+optim:
+  lr: 3e-4
+
+trainer:
+  gpus: 1
+  fast_dev_run: False
+  max_epochs: 1
