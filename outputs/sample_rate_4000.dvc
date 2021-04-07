@@ -1,0 +1,5 @@
+outs:
+- md5: 8d773d72d14265a52c149432c0d9f0d8.dir
+  size: 20034660
+  nfiles: 7
+  path: sample_rate_4000
