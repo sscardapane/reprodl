@@ -1,4 +1,7 @@
 [core]
-    remote = localremote
+    remote = minio
 ['remote "localremote"']
     url = ../../datasets
+['remote "minio"']
+    url = s3://dvc/
+    endpointurl = http://141.108.25.49:9000
