@@ -21,6 +21,11 @@ from pytorch_lightning.loggers import WandbLogger
 
 logger = logging.getLogger(__name__)
 
+hyperparameter_defaults = dict(
+    sample_rate = 8000,
+    lr = 1e-4,
+)
+
 class CS50Dataset(torch.utils.data.Dataset):
 
     def __init__(self, datapath : Path, folds, sample_rate=8000):
@@ -105,6 +110,14 @@ class AudioNet(ptl.LightningModule):
 def train(cfg: DictConfig):
 
     logger.info(f"Training with the following config:\n{OmegaConf.to_yaml(cfg)}")
+    
+    wandb.init(config=hyperparameter_defaults)
+    to_merge = OmegaConf.create(wandb.config._as_dict())
+
+    # Terrible hack :-(
+    cfg.data.sample_rate = to_merge.sample_rate
+    cfg.optim.lr = to_merge.lr
+
     wandb_logger = WandbLogger(project='reprodl')
 
     ptl.seed_everything(1)

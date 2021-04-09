@@ -1,0 +1,20 @@
+program: train.py
+method: bayes
+
+metric:
+  name: valid_loss
+  goal: minimize
+
+parameters:
+  lr:
+    distribution: log_uniform
+    min: -4
+    max: -1
+  sample_rate:
+    values: [2000, 4000, 8000, 16000]
+
+command:
+  - ${env}
+  - ${interpreter}
+  - ${program}
+  - ${args_no_hyphen}
