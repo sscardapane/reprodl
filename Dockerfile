@@ -9,10 +9,16 @@ COPY . /reprodl
 RUN pip install -r requirements.txt
 RUN apt-get install -y libsndfile1-dev # torchaudio
 
-RUN pip install dvc boto3 --ignore-installed ruamel.yaml
-ARG AWS_ACCESS_KEY_ID
-ARG AWS_SECRET_ACCESS_KEY
-RUN dvc pull
+# RUN pip install dvc boto3 --ignore-installed ruamel.yaml
+# ARG AWS_ACCESS_KEY_ID
+# ARG AWS_SECRET_ACCESS_KEY
+# RUN dvc pull
+
+RUN pip install wandb
+ARG WANDB_API_KEY
+RUN wandb login
+
+CMD ["python", "train.py"]
 
 FROM base
 

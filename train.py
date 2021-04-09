@@ -16,15 +16,18 @@ import hydra
 from omegaconf import DictConfig, OmegaConf
 from hydra.utils import get_original_cwd
 
+import wandb
+from pytorch_lightning.loggers import WandbLogger
+
 logger = logging.getLogger(__name__)
 
 class CS50Dataset(torch.utils.data.Dataset):
 
-    def __init__(self, datapath : Path, fold : int, sample_rate=8000):
+    def __init__(self, datapath : Path, folds, sample_rate=8000):
         
         self.datapath = datapath
         self.csv = pd.read_csv(datapath / Path('meta/esc50.csv'))
-        self.csv = self.csv[self.csv['fold'] == fold]
+        self.csv = self.csv[self.csv['fold'].isin(folds)]
         self.resample = torchaudio.transforms.Resample(orig_freq=44100, new_freq=sample_rate)
         self.mel = torchaudio.transforms.MelSpectrogram(sample_rate=sample_rate)
         self.power_to_db = torchaudio.transforms.AmplitudeToDB(top_db=80)
@@ -32,7 +35,7 @@ class CS50Dataset(torch.utils.data.Dataset):
     def __getitem__(self, index):
         
         xb, sample_rate = torchaudio.load(self.datapath / 'audio' / f'{self.csv.iloc[index, 0]}')
-        yb = self.csv.iloc[0, 2]
+        yb = self.csv.iloc[index, 2]
 
         sound = self.resample(xb)
         sound = self.mel(sound)
@@ -80,7 +83,7 @@ class AudioNet(ptl.LightningModule):
         xb, yb = batch
         y_pred = self(xb)
         loss = F.cross_entropy(y_pred, yb)
-        self.log('train_loss', loss)
+        self.log('train_loss', loss, on_step=True, on_epoch=False)
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -89,8 +92,8 @@ class AudioNet(ptl.LightningModule):
         loss = F.cross_entropy(y_pred, yb)
         y_hat = torch.argmax(y_pred, dim=1)
         acc = accuracy(y_hat, yb)
-        self.log('valid_loss', loss, on_step=True)
-        self.log('valid_accuracy', acc, on_step=True)
+        self.log('valid_loss', loss, on_step=False, on_epoch=True)
+        self.log('valid_accuracy', acc, on_step=False, on_epoch=True, prog_bar=True)
         return loss
 
     def configure_optimizers(self):
@@ -102,16 +105,17 @@ class AudioNet(ptl.LightningModule):
 def train(cfg: DictConfig):
 
     logger.info(f"Training with the following config:\n{OmegaConf.to_yaml(cfg)}")
+    wandb_logger = WandbLogger(project='reprodl')
 
     ptl.seed_everything(1)
 
-    traindata = CS50Dataset(Path(get_original_cwd()) / Path(cfg.data.path), 1, cfg.data.sample_rate)
-    testdata = CS50Dataset(Path(get_original_cwd()) / Path(cfg.data.path), 2, cfg.data.sample_rate)
+    traindata = CS50Dataset(Path(get_original_cwd()) / Path(cfg.data.path), cfg.data.train_folds, cfg.data.sample_rate)
+    testdata = CS50Dataset(Path(get_original_cwd()) / Path(cfg.data.path), cfg.data.test_folds, cfg.data.sample_rate)
     train_loader = torch.utils.data.DataLoader(traindata, batch_size=cfg.batch_size, shuffle=True)
     test_loader = torch.utils.data.DataLoader(testdata, batch_size=cfg.batch_size, shuffle=False)
 
     audionet = AudioNet(cfg)
-    trainer = ptl.Trainer(**cfg.trainer)
+    trainer = ptl.Trainer(**cfg.trainer, logger=wandb_logger)
     trainer.fit(audionet, train_loader, test_loader)
 
 if __name__ == '__main__':
