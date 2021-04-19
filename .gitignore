@@ -1,3 +1,6 @@
 data/ESC-50-master/*
 .vscode/*
 .ipynb_checkpoints/*
+outputs/*
+wandb/*
+__pycache__/*
