@@ -1,8 +1,8 @@
 import unittest
-import torch
-import pytorch_lightning as ptl
-from train import AudioNet
 import omegaconf
+import pytorch_lightning as ptl
+import torch
+from train import AudioNet 
 
 
 class TestModel(unittest.TestCase):
