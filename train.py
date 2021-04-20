@@ -3,21 +3,21 @@
 
 import logging
 from pathlib import Path
-import matplotlib.pyplot as plt
-import pandas as pd
-
-import torch, torchaudio
-from torch import nn
-import torch.nn.functional as F
-import pytorch_lightning as ptl
-from pytorch_lightning.metrics.functional import accuracy
 
 import hydra
-from omegaconf import DictConfig, OmegaConf
+import matplotlib.pyplot as plt
+import pandas as pd
+import pytorch_lightning as ptl
+import torch
+import torch.nn.functional as F
+import torchaudio
 from hydra.utils import get_original_cwd
+from omegaconf import DictConfig, OmegaConf
+from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.metrics.functional import accuracy
+from torch import nn
 
 import wandb
-from pytorch_lightning.loggers import WandbLogger
 
 logger = logging.getLogger(__name__)
 

@@ -9,9 +9,23 @@ if [ $? -ne 0 ]; then
  exit 1
 fi 
 
-isort --profile black .
-black .
-flake8 . --count --select=B9
+black --diff --check   test_train.py train.py
+
+# $? stores exit value of the last command
+if [ $? -ne 0 ]; then
+ echo "Code is not formatted correctly."
+ exit 1
+fi 
+
+isort --profile black --diff --check-only  test_train.py train.py
+
+# $? stores exit value of the last command
+if [ $? -ne 0 ]; then
+ echo "Imports are not formatted correctly."
+ exit 1
+fi 
+
+flake8 test_train.py train.py --count --select=B9 --show-source --statistics
 
 # $? stores exit value of the last command
 if [ $? -ne 0 ]; then

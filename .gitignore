@@ -4,3 +4,4 @@ data/ESC-50-master/*
 outputs/*
 wandb/*
 __pycache__/*
+lightning_logs/*
